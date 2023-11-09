@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <link rel="icon" href="favicon.ico">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#000000">
+        <meta name="description" content=" site created by JKG">
+        <link rel="stylesheet" href="app.css">
+        <script src="app.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="tray">
+                <div class="head">
+                    <div class="-h1">Trifolder</div>
+                    <div class="-h2">something something</div>
+                </div>
+                <div class="tray-row">
+                    <div class="die-result" id="d1">0</div>
+                    <div class="die-result" id="d2">0</div>
+                    <div class="die-result" id="d3">0</div>
+                </div>
+            </div>
+            <div class="tray">
+                <textarea id="output"></textarea>
+            </div>
+            <div class="tray">
+                <div class="tray-row">
+                    <button class="roll" id="btn-load">Load</button>
+                    <!-- <button class="roll" id="btn-repeat">...</button> -->
+                </div>
+            </div>
+            <div class="tray">
+                <label for="v-options">Voice Options</label>
+                <select id="v-options"></select>
+            </div>
+            <div class="tray">
+                <label for="v-pitch">
+                    Pitch Level: 
+                    <span id="v-pitch-lvl">Medium</span>
+                </label>
+                <input type="range" id="v-pitch" min="0" max="2" value="1" />
+            </div>
+            <div class="foot">
+                <span>&copy; 2023 jkg-trifolder</span>
+            </div>
+        </div>
+    </body>
+</html>
