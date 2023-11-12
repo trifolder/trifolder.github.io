@@ -2,7 +2,9 @@
 // by Joey Guziejka
 // 11/9/2023
 let ddbChars = [];
-const TEMPLATE_OK = "content" in document.createElement("template")
+const TEMPLATE_OK = "content" in document.createElement("template");
+const DEX_SCORE = 'Dexterity Score';
+const DEX_ID = 2;
 const apiUrl = 'https://character-service.dndbeyond.com/character/v5/character/';
 const testId = 111494816;
 
@@ -65,24 +67,35 @@ function buildCharacterView(c) {
 	if (!baseAcVal || isNaN(baseAcVal) || baseAcVal < 10) {
 		baseAcVal = 10;
 	}
-
-	const dex = c.stats.find(x => x.id === 2).value;
-	const DEX_SCORE = 'Dexterity Score';
+	// armor type? max 2?
+	let max2 = false;
+	for (let i = 0; i < eq_acs.length; i++) {
+		if (max2) 
+			continue;
+		
+		max2 = eq_acs[i].definition.type !== 'Light Armor';
+	}
+	const base_dex_attr = c.stats.find(x => x.id === DEX_ID).value;
 	// race stat choices
 	const dex_defs = c.choices.choiceDefinitions.filter(x => x.options.some(y => y.label === DEX_SCORE));
-	const set_id = dex_defs[0].id ?? '1960452172-2';
+	//const set_id = dex_defs[0].id ?? '1960452172-2';
 	const dex_ids = dex_defs[0].options.filter(x => x.label === DEX_SCORE).map(y => y.id);
-	const racials =  c.choices.race.filter(x => x.id === set_id);
-	//let foo = racials.filter(x => x.label );
-	//racials[0].optionValue
-	//(x => x.type === 2 && x.subType === 5)
+	const racials =  c.choices.race.filter(x => dex_ids.some(y => y == x.optionValue));
+	let bonus = 0;
+	for (let i = 0; i < racials.length; i++) {
+		const racial = racials[i];
+		bonus += racial.label.includes('2') ? 2 : 1;		
+	}
+
+	let baseDex = base_dex_attr + bonus;
+	let modDex = Math.floor((baseDex - 10) / 2);
+	let finalAc = baseAcVal + (max2 && modDex > 2 ? 2 : modDex);
 
 
-	const ac = baseAcVal;
 	//16; // tbd
 	//inventory[0].equipped
 	//definition.armorClass
-	stats.push(`AC: ${ac}`);
+	stats.push(`AC: ${finalAc}`);
 
 
 	let dc_statlist = clone.querySelector('.dc-stat-list');
