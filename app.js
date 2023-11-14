@@ -4,9 +4,9 @@
 let ddbChars = [];
 const TEMPLATE_OK = "content" in document.createElement("template");
 const DEX_SCORE = 'Dexterity Score';
-const DEX_ID = 2;
 const apiUrl = 'https://character-service.dndbeyond.com/character/v5/character/';
 const testId = 111494816;
+const STAT_NAMES = [ 'STR|strength-score', 'DEX|dexterity-score', 'CON|constitution-score', 'INT|intelligence-score', 'WIS|wisdom-score', 'CHA|charisma-score' ];
 
 function init() {
 	const btnLoad = document.querySelector("#btn-load");
@@ -47,6 +47,7 @@ function buildCharacterView(c) {
 		alert('browser no support templates!!!');
 		return;
 	}
+	
 	const template = document.querySelector('#dc-template');
 	const clone = template.content.cloneNode(true);
 
@@ -60,8 +61,29 @@ function buildCharacterView(c) {
 	const className = c.classes.map(o => o.definition.name + ' ' + o.subclassDefinition.name).join(', ');
 	dc_rccl.innerHTML = `Race: ${c.race.fullName}<br />Class: ${className}`;
 
+	let stats = calculateCharacterStats(c);
+	let ops = [];
+
+	//16; // tbd
+	//inventory[0].equipped
+	//definition.armorClass
+	ops.push(`AC: ${stats.finalAc}`);
+
+
+	let dc_statlist = clone.querySelector('.dc-stat-list');
+	for (let i = 0; i < ops.length; i++) {
+		let op = document.createElement('li');
+		op.textContent = ops[i];
+		dc_statlist.appendChild(op);
+	}
+
+	const o_container = document.querySelector('#output');
+	o_container.appendChild(clone);
+}
+
+function calculateCharacterStats(c) {
 	let stats = [];
-	// base equipped inv items
+	// base equipped inv items with AC
 	const eq_acs = c.inventory.filter(x => x.equipped).filter(y => y.definition.armorClass != null);
 	const baseAcVal = eq_acs.map(x => x.definition.armorClass).reduce((a, b) => a + b, 0);
 	if (!baseAcVal || isNaN(baseAcVal) || baseAcVal < 10) {
@@ -71,44 +93,42 @@ function buildCharacterView(c) {
 	let max2 = false;
 	for (let i = 0; i < eq_acs.length; i++) {
 		if (max2) 
-			continue;
+			break;
 		
 		max2 = eq_acs[i].definition.type !== 'Light Armor';
 	}
-	const base_dex_attr = c.stats.find(x => x.id === DEX_ID).value;
+
+	const baseStats = c.stats.map(x => x.value);
+
+	for (let i = 0; i < STAT_NAMES.length; i++) {
+		const sName = STAT_NAMES[i].split('|');
+		const raceBonus = c.modifiers.race.filter(x => x.type === 'bonus' && x.subType === sName[1]).map(y => y.value).reduce((a, b) => a + b, 0);
+		const classBonus = c.modifiers.class.filter(x => x.type === 'bonus' && x.subType === sName[1]).map(y => y.value).reduce((a, b) => a + b, 0);
+		stats[i] = { n: sName[0], b: baseStats[i], r: raceBonus, c: classBonus, t: (baseStats[i] + raceBonus + classBonus) };
+	}
+
+// 	c.modifiers.race[6].type === 'bonus' 
+// true
+// c.modifiers.race[6].subType
+// 'dexterity-score'
+	//const dexIdx = STAT_INDEX.findIndex(x => x === "DEX");
+	//const base_dex_attr = baseStats[dexIdx];
+	//c.stats.find(x => x.id === DEX_ID).value;
 	// race stat choices
-	const dex_defs = c.choices.choiceDefinitions.filter(x => x.options.some(y => y.label === DEX_SCORE));
-	//const set_id = dex_defs[0].id ?? '1960452172-2';
-	const dex_ids = dex_defs[0].options.filter(x => x.label === DEX_SCORE).map(y => y.id);
-	const racials =  c.choices.race.filter(x => dex_ids.some(y => y == x.optionValue));
-	let bonus = 0;
-	for (let i = 0; i < racials.length; i++) {
-		const racial = racials[i];
-		bonus += racial.label.includes('2') ? 2 : 1;		
-	}
+	// const dex_defs = c.choices.choiceDefinitions.filter(x => x.options.some(y => y.label === DEX_SCORE));
+	// //const set_id = dex_defs[0].id ?? '1960452172-2';
+	// const dex_ids = dex_defs[0].options.filter(x => x.label === DEX_SCORE).map(y => y.id);
+	// const racials = c.choices.race.filter(x => dex_ids.some(y => y == x.optionValue));
+	// let bonus = 0;
+	// for (let i = 0; i < racials.length; i++) {
+	// 	const racial = racials[i];
+	// 	bonus += racial.label.includes('2') ? 2 : 1;		
+	// }
 
-	let baseDex = base_dex_attr + bonus;
-	let modDex = Math.floor((baseDex - 10) / 2);
+	let modDex = Math.floor((stats[1].t - 10) / 2);
 	let finalAc = baseAcVal + (max2 && modDex > 2 ? 2 : modDex);
-
-
-	//16; // tbd
-	//inventory[0].equipped
-	//definition.armorClass
-	stats.push(`AC: ${finalAc}`);
-
-
-	let dc_statlist = clone.querySelector('.dc-stat-list');
-	for (let i = 0; i < stats.length; i++) {
-		let stat = document.createElement('li');
-		stat.textContent = stats[i];
-		dc_statlist.appendChild(stat);
-	}
-
-	const o_container = document.querySelector('#output');
-	o_container.appendChild(clone);
+	return { finalAc, stats };
 }
-
 
 document.addEventListener("DOMContentLoaded", function(event) {
     init();
