@@ -82,53 +82,69 @@ function buildCharacterView(c) {
 }
 
 function calculateCharacterStats(c) {
-	let stats = [];
+	const stats = [];
 	// base equipped inv items with AC
 	const eq_acs = c.inventory.filter(x => x.equipped).filter(y => y.definition.armorClass != null);
-	const baseAcVal = eq_acs.map(x => x.definition.armorClass).reduce((a, b) => a + b, 0);
+	const baseAcVal = eq_acs.map(x => x.definition.armorClass).reduce(duce, 0);
 	if (!baseAcVal || isNaN(baseAcVal) || baseAcVal < 10) {
 		baseAcVal = 10;
 	}
 	// armor type? max 2?
-	let max2 = false;
+	let isMax2Dex = false;
 	for (let i = 0; i < eq_acs.length; i++) {
-		if (max2) 
+		if (isMax2Dex) 
 			break;
 		
-		max2 = eq_acs[i].definition.type !== 'Light Armor';
+		isMax2Dex = eq_acs[i].definition.type !== 'Light Armor';
 	}
 
 	const baseStats = c.stats.map(x => x.value);
-
 	for (let i = 0; i < STAT_NAMES.length; i++) {
 		const sName = STAT_NAMES[i].split('|');
-		const raceBonus = c.modifiers.race.filter(x => x.type === 'bonus' && x.subType === sName[1]).map(y => y.value).reduce((a, b) => a + b, 0);
-		const classBonus = c.modifiers.class.filter(x => x.type === 'bonus' && x.subType === sName[1]).map(y => y.value).reduce((a, b) => a + b, 0);
+		const raceBonus = c.modifiers.race.filter(x => x.type === 'bonus' && x.subType === sName[1]).map(y => y.value).reduce(duce, 0);
+		const classBonus = c.modifiers.class.filter(x => x.type === 'bonus' && x.subType === sName[1]).map(y => y.value).reduce(duce, 0);
 		stats[i] = { n: sName[0], b: baseStats[i], r: raceBonus, c: classBonus, t: (baseStats[i] + raceBonus + classBonus) };
 	}
 
-// 	c.modifiers.race[6].type === 'bonus' 
-// true
-// c.modifiers.race[6].subType
-// 'dexterity-score'
-	//const dexIdx = STAT_INDEX.findIndex(x => x === "DEX");
-	//const base_dex_attr = baseStats[dexIdx];
-	//c.stats.find(x => x.id === DEX_ID).value;
-	// race stat choices
-	// const dex_defs = c.choices.choiceDefinitions.filter(x => x.options.some(y => y.label === DEX_SCORE));
-	// //const set_id = dex_defs[0].id ?? '1960452172-2';
-	// const dex_ids = dex_defs[0].options.filter(x => x.label === DEX_SCORE).map(y => y.id);
-	// const racials = c.choices.race.filter(x => dex_ids.some(y => y == x.optionValue));
-	// let bonus = 0;
-	// for (let i = 0; i < racials.length; i++) {
-	// 	const racial = racials[i];
-	// 	bonus += racial.label.includes('2') ? 2 : 1;		
-	// }
+	const dexTotal = stats.find(x => x.n === 'DEX').t;
+	const intTotal = stats.find(x => x.n === 'INT').t;
+	const wisTotal = stats.find(x => x.n === 'WIS').t;
 
-	let modDex = Math.floor((stats[1].t - 10) / 2);
-	let finalAc = baseAcVal + (max2 && modDex > 2 ? 2 : modDex);
-	return { finalAc, stats };
+	const dexMod = statTotalToMod(dexTotal);
+	const intMod = statTotalToMod(intTotal);
+	const wisMod = statTotalToMod(wisTotal);
+
+	const finalAc = baseAcVal + (isMax2Dex && dexMod > 2 ? 2 : dexMod);
+	const level = c.classes.map(x => x.level).reduce(duce, 0);
+	const pb = levelToProfBonus(level);
+	// prof perception investigation insight
+	const hasProfPerceptionClass = c.modifiers.class.some(x => x.type === 'proficiency' && x.subType === 'perception');
+	const hasProfPerceptionBakGd = c.modifiers.background.some(x => x.type === 'proficiency' && x.subType === 'perception');
+
+	const hasProfInvestigationClass = c.modifiers.class.some(x => x.type === 'proficiency' && x.subType === 'investigation');
+	const hasProfInvestigationBakGd = c.modifiers.background.some(x => x.type === 'proficiency' && x.subType === 'investigation');
+	
+	const hasProfInsightClass = c.modifiers.class.some(x => x.type === 'proficiency' && x.subType === 'insight');
+	const hasProfInsightBakGd = c.modifiers.background.some(x => x.type === 'proficiency' && x.subType === 'insight');
+	// tbd expertise
+	const passivePerception = 10 + wisMod + (hasProfPerceptionClass || hasProfPerceptionBakGd ? pb : 0);
+	const passiveInvestigation = 10 + intMod + (hasProfInvestigationClass || hasProfInvestigationBakGd ? pb : 0);
+	const passiveInsight = 10 + wisMod + (hasProfInsightClass || hasProfInsightBakGd ? pb : 0);
+
+	return { finalAc, level, passivePerception, passiveInvestigation, passiveInsight, stats };
 }
+
+function statTotalToMod(t) {
+	return Math.floor((t - 10) / 2);
+}
+
+function levelToProfBonus(level) {
+	return Math.ceil(level/4) + 1;
+}
+
+function duce(a, b) {
+	return a + b;
+} 
 
 document.addEventListener("DOMContentLoaded", function(event) {
     init();
