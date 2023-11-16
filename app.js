@@ -4,7 +4,7 @@
 let ddbChars = [];
 const TEMPLATE_OK = "content" in document.createElement("template");
 const DEX_SCORE = 'Dexterity Score';
-const apiUrl = 'https://character-service.dndbeyond.com/character/v5/character/';
+const apiUrl = 'http://cors-anywhere.com/https://character-service.dndbeyond.com/character/v5/character/';
 const testId = 111494816;
 const STAT_NAMES = [ 'STR|strength-score', 'DEX|dexterity-score', 'CON|constitution-score', 'INT|intelligence-score', 'WIS|wisdom-score', 'CHA|charisma-score' ];
 
@@ -14,7 +14,6 @@ function init() {
 		await handleLoadPress();
 	});
 }
-
 
 async function handleLoadPress() {
 	await getDataFromDdbUrl();
@@ -33,19 +32,23 @@ async function getDataFromDdbUrl() {
 	} else {
 		const dc_vals = dc_inputVal.split('\n');
 		for (let i = 0; i < dc_vals.length; i++) {
-			// const opts =  {
-			// 	method: 'GET',
-			// 	mode: 'cors',
-			// 	headers: {
-			// 	  'Content-Type': 'application/json'
-			// 	}
-			// };
+			const options = { 
+				method: 'GET',
+				headers: {
+					'Access-Control-Allow-Origin': '*'
+				}
+			};
+
 			const dc_val = dc_vals[i];
-			//const url = apiUrl + dc_val;
-			const url = `./${dc_val}.json`;
-			const response = await fetch(url);
-			const charData = await response.json();
-			ddbChars[i] = charData;
+			const url = apiUrl + dc_val;
+			//const url = `./${dc_val}.json`;
+      try {
+        const response = await fetch(url, options);
+        const charData = await response.json();
+        ddbChars[i] = charData; 
+      } catch (error) {
+        console.log(error);
+      }
 		}
 	}
 }
@@ -183,5 +186,5 @@ function duce(a, b) {
 } 
 
 document.addEventListener("DOMContentLoaded", function(event) {
-    init();
+  init();
 });
