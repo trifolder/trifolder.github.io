@@ -16,13 +16,12 @@
                     <div class="-h1">Trifolder</div>
                     <div class="-h2">D&D Character Display App</div>
                 </div>
-                <div class="tray-row">
-                </div>
             </div>
             <div class="tray">
                 <div class="tray-row">
-                    <textarea id="input" rows="3"></textarea>
+                    <textarea id="dc-input" rows="3"></textarea>
                     <button id="btn-load">Load</button>
+                    <a href="#" onclick="window.print()">Print</a>
                     <!-- <button class="roll" id="btn-repeat">...</button> -->
                 </div>
             </div>
@@ -49,17 +48,25 @@
         </div>
         <template id="dc-template">
             <div class="dc-area">
-                <div>
+                <div class="dc-area-left">
                     <img class="dc-img" src="" alt="profile"/>
                 </div>
-                <div>
+                <div class="dc-area-right">
                     <div class="dc-name"></div>
                     <div class="dc-raceclass"></div>
+                    <div class="dc-stats"></div>
                     <div>
                         <ul class="dc-stat-list"></ul>
                     </div>
                 </div>
             </div>
-          </template>
+        </template>
+        <template id="dc-stat-template">
+            <div class="dc-stat">
+                <span class="dc-stat-name"></span>
+                <span class="dc-stat-mod"></span>
+                <span class="dc-stat-total"></span>
+            </div>
+        </template>
     </body>
 </html>

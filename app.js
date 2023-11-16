@@ -22,12 +22,32 @@ async function handleLoadPress() {
 }
 
 async function getDataFromDdbUrl() {
-	//const url = apiUrl + testId;
-	const url = './sample_data.json';
-	const response = await fetch(url);
-	const charData = await response.json();
-	const itbd = 0;
-	ddbChars[itbd] = charData;
+	const tb = document.querySelector('#dc-input');
+	const dc_inputVal = tb.value;
+	if (!dc_inputVal || dc_inputVal.length < 1) {
+		const url = './sample_data.json';
+		const response = await fetch(url);
+		const charData = await response.json();
+		const itbd = 0;
+		ddbChars[itbd] = charData;
+	} else {
+		const dc_vals = dc_inputVal.split('\n');
+		for (let i = 0; i < dc_vals.length; i++) {
+			// const opts =  {
+			// 	method: 'GET',
+			// 	mode: 'cors',
+			// 	headers: {
+			// 	  'Content-Type': 'application/json'
+			// 	}
+			// };
+			const dc_val = dc_vals[i];
+			//const url = apiUrl + dc_val;
+			const url = `./${dc_val}.json`;
+			const response = await fetch(url);
+			const charData = await response.json();
+			ddbChars[i] = charData;
+		}
+	}
 }
 
 async function loadCharacterInfo() {
@@ -49,27 +69,41 @@ function buildCharacterView(c) {
 	}
 	
 	const template = document.querySelector('#dc-template');
+	const statTemplate = document.querySelector('#dc-stat-template');
 	const clone = template.content.cloneNode(true);
 
-	let dc_img = clone.querySelector('.dc-img');
+	const dc_img = clone.querySelector('.dc-img');
 	dc_img.setAttribute('src', c.decorations.avatarUrl);
 
-	let dc_name = clone.querySelector('.dc-name');
+	const dc_name = clone.querySelector('.dc-name');
 	dc_name.textContent = c.name;
 
-	let dc_rccl = clone.querySelector('.dc-raceclass');
+	const dc_rccl = clone.querySelector('.dc-raceclass');
 	const className = c.classes.map(o => o.definition.name + ' ' + o.subclassDefinition.name).join(', ');
 	dc_rccl.innerHTML = `Race: ${c.race.fullName}<br />Class: ${className}`;
 
-	let stats = calculateCharacterStats(c);
-	let ops = [];
+	const characterInfo = calculateCharacterStats(c);
 
-	//16; // tbd
-	//inventory[0].equipped
-	//definition.armorClass
-	ops.push(`AC: ${stats.finalAc}`);
+	const dc_stats = clone.querySelector('.dc-stats');
+	for (let i = 0; i < characterInfo.stats.length; i++) {
+		const stat = characterInfo.stats[i];
+		const statClone = statTemplate.content.cloneNode(true);
+		const statName = statClone.querySelector('.dc-stat-name');
+		statName.textContent = stat.n;
+		const statTotal = statClone.querySelector('.dc-stat-total');
+		statTotal.textContent = stat.t;
+		const statMod = statClone.querySelector('.dc-stat-mod');
+		statMod.textContent = stat.m > 0 ? '+' + stat.m : stat.m;
+		dc_stats.appendChild(statClone);
+	}
 
-
+	let ops = [
+		`AC: ${characterInfo.finalAc}`,
+		`Level: ${characterInfo.level}`,
+		`Passive Perception: ${characterInfo.passivePerception}`,
+		`Passive Investigation: ${characterInfo.passiveInvestigation}`,
+		`Passive Insight: ${characterInfo.passiveInsight}`
+	];
 	let dc_statlist = clone.querySelector('.dc-stat-list');
 	for (let i = 0; i < ops.length; i++) {
 		let op = document.createElement('li');
@@ -97,13 +131,15 @@ function calculateCharacterStats(c) {
 		
 		isMax2Dex = eq_acs[i].definition.type !== 'Light Armor';
 	}
-
+	// stats
 	const baseStats = c.stats.map(x => x.value);
 	for (let i = 0; i < STAT_NAMES.length; i++) {
 		const sName = STAT_NAMES[i].split('|');
 		const raceBonus = c.modifiers.race.filter(x => x.type === 'bonus' && x.subType === sName[1]).map(y => y.value).reduce(duce, 0);
 		const classBonus = c.modifiers.class.filter(x => x.type === 'bonus' && x.subType === sName[1]).map(y => y.value).reduce(duce, 0);
-		stats[i] = { n: sName[0], b: baseStats[i], r: raceBonus, c: classBonus, t: (baseStats[i] + raceBonus + classBonus) };
+		const statTotal = baseStats[i] + raceBonus + classBonus;
+		const statMod = statTotalToMod(statTotal);
+		stats[i] = { n: sName[0], t: statTotal, m: statMod };
 	}
 
 	const dexTotal = stats.find(x => x.n === 'DEX').t;
