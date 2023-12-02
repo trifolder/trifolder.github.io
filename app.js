@@ -1,23 +1,70 @@
 // Trifolder D&D Character Display App
 // by Joey Guziejka
-// 11/9/2023
+// cd_11/09/2023
+// md_12/01/2023
+
 let ddbChars = [];
 const TEMPLATE_OK = "content" in document.createElement("template");
+let isOnline = false;
 const DEX_SCORE = 'Dexterity Score';
 const apiUrl = 'http://cors-anywhere.com/https://character-service.dndbeyond.com/character/v5/character/';
 const testId = 111494816;
 const STAT_NAMES = [ 'STR|strength-score', 'DEX|dexterity-score', 'CON|constitution-score', 'INT|intelligence-score', 'WIS|wisdom-score', 'CHA|charisma-score' ];
 
-function init() {
+
+async function init() {
+	await healthCheck();
 	const btnLoad = document.querySelector("#btn-load");
 	btnLoad.addEventListener("click", async () => {
 		await handleLoadPress();
 	});
 }
 
+// this function verifies the proxy is running 
+// and the app is able to make requests
+async function healthCheck() {
+	const url = 'https://localhost:7006/zhealth'; //'https://gradelink-qa.azurewebsites.net/zHealth';
+	const options = { 
+		method: 'GET',
+		headers: {
+			'Access-Control-Allow-Origin': '*'
+		}
+	};
+	const response = await fetch(url, options);
+	isOnline = response.ok;
+	const data = await response.text(); //json();
+	console.log(data);
+}
+
 async function handleLoadPress() {
-	await getDataFromDdbUrl();
-	await loadCharacterInfo();
+	if (!isOnline) {
+		alert('app is offline');
+		return;
+	}
+	await loadDefaultCharacterSelection();
+	// await getDataFromDdbUrl();
+	// await loadCharacterInfo();
+}
+
+async function loadDefaultCharacterSelection() {
+	if (!TEMPLATE_OK) {
+		alert('browser no support templates!!!');
+		return;
+	}
+
+	const dc_select_area = document.querySelector('.dc-select-area');
+	const dcis_template = document.querySelector('#dc-imgselect-template');
+	for (let i = 0; i < activeCharacters.length; i++) {
+		const activeChar = activeCharacters[i];
+		const dcis_clone = dcis_template.content.cloneNode(true);
+		const dcis = dcis_clone.querySelector('.dc-imgselect');
+		dcis.setAttribute('data-character-id', activeChar.characterId);
+		const dcis_img = dcis_clone.querySelector('.dc-imgselect-img');
+		dcis_img.setAttribute('src', activeChar.avatarUrl);
+		const dcis_name = dcis_clone.querySelector('.dc-imgselect-name');
+		dcis_name.textContent = activeChar.characterName;
+		dc_select_area.appendChild(dcis_clone);
+	}
 }
 
 async function getDataFromDdbUrl() {
@@ -185,6 +232,71 @@ function duce(a, b) {
 	return a + b;
 } 
 
-document.addEventListener("DOMContentLoaded", function(event) {
-  init();
+document.addEventListener("DOMContentLoaded", async (event) => {
+	console.log(event.type);
+  await init();
 });
+
+// data
+const activeCharacters = [{
+	"userId": 117971385,
+	"username": "EllingTrias",
+	"characterId": 111492631,
+	"characterName": "Elling Trias the Great",
+	"characterUrl": "/profile/EllingTrias/characters/111492631",
+	"avatarUrl": "https://www.dndbeyond.com/avatars/17/178/636377835492897814.jpeg?width=150&height=150&fit=crop&quality=95&auto=webp",
+	"privacyType": 3,
+	"campaignId": null,
+	"isAssigned": true
+}, {
+	"userId": 109083463,
+	"username": "dogmaii",
+	"characterId": 111498202,
+	"characterName": "Jayms (Jym, 30)",
+	"characterUrl": "/profile/dogmaii/characters/111498202",
+	"avatarUrl": "https://www.dndbeyond.com/avatars/37712/121/1581111423-111498202.jpeg?width=150&height=150&fit=crop&quality=95&auto=webp",
+	"privacyType": 3,
+	"campaignId": null,
+	"isAssigned": true
+}, {
+	"userId": 116730144,
+	"username": "BradleyBEG",
+	"characterId": 111500432,
+	"characterName": "Airk",
+	"characterUrl": "/profile/BradleyBEG/characters/111500432",
+	"avatarUrl": "https://www.dndbeyond.com/avatars/32569/576/638131317734505343.jpeg?width=150&height=150&fit=crop&quality=95&auto=webp",
+	"privacyType": 2,
+	"campaignId": null,
+	"isAssigned": true
+}, {
+	"userId": 100237465,
+	"username": "gheist",
+	"characterId": 111540702,
+	"characterName": " Bicorn Kaufwin Peckish",
+	"characterUrl": "/profile/gheist/characters/111540702",
+	"avatarUrl": "https://www.dndbeyond.com/avatars/38116/343/1581111423-111540702.jpeg?width=150&height=150&fit=crop&quality=95&auto=webp",
+	"privacyType": 2,
+	"campaignId": null,
+	"isAssigned": true
+}, {
+	"userId": 105857724,
+	"username": "Here4KeepsNCastles",
+	"characterId": 111412660,
+	"characterName": "Yorti Frandula",
+	"characterUrl": "/profile/Here4KeepsNCastles/characters/111412660",
+	"avatarUrl": "https://www.dndbeyond.com/avatars/10/67/636339379597405748.png?width=150&height=150&fit=crop&quality=95&auto=webp",
+	"privacyType": 2,
+	"campaignId": null,
+	"isAssigned": true
+}, {
+	"userId": 101104705,
+	"username": "julianj536",
+	"characterId": 111807249,
+	"characterName": "Pomni",
+	"characterUrl": "/profile/julianj536/characters/111807249",
+	"avatarUrl": "https://www.dndbeyond.com/avatars/37783/806/1581111423-111793660.jpeg?width=150&height=150&fit=crop&quality=95&auto=webp",
+	"privacyType": 2,
+	"campaignId": null,
+	"isAssigned": true
+}
+];
