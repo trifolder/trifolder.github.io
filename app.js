@@ -15,15 +15,20 @@ const STAT_NAMES = [ 'STR|strength-score', 'DEX|dexterity-score', 'CON|constitut
 async function init() {
 	await healthCheck();
 	const btnLoad = document.querySelector("#btn-load");
-	btnLoad.addEventListener("click", async () => {
-		await handleLoadPress();
+	btnLoad.addEventListener("click", async (e) => {
+		await handleLoadPress(e);
+	});
+	const btnLoadManual = document.querySelector("#btn-load-manual");
+	const btnImport = document.querySelector("#btn-import");
+	btnImport.addEventListener("click", async (e) => {
+		//await handleImport(e);
 	});
 }
 
 // this function verifies the proxy is running 
 // and the app is able to make requests
 async function healthCheck() {
-	const url = 'https://localhost:7006/zhealth'; //'https://gradelink-qa.azurewebsites.net/zHealth';
+	const url = 'https://gradelink-qa.azurewebsites.net/zHealth';
 	const options = { 
 		method: 'GET',
 		headers: {
@@ -32,16 +37,20 @@ async function healthCheck() {
 	};
 	const response = await fetch(url, options);
 	isOnline = response.ok;
-	const data = await response.text(); //json();
+	const data = await response.text();
 	console.log(data);
 }
 
-async function handleLoadPress() {
+async function handleLoadPress(e) {
 	if (!isOnline) {
 		alert('app is offline');
 		return;
 	}
-	await loadDefaultCharacterSelection();
+	const test = prompt('Who ate the cake?');
+	if (pass(test)) {
+		e.currentTarget.style.display = 'none';
+		await loadDefaultCharacterSelection();
+	}
 	// await getDataFromDdbUrl();
 	// await loadCharacterInfo();
 }
@@ -59,6 +68,10 @@ async function loadDefaultCharacterSelection() {
 		const dcis_clone = dcis_template.content.cloneNode(true);
 		const dcis = dcis_clone.querySelector('.dc-imgselect');
 		dcis.setAttribute('data-character-id', activeChar.characterId);
+		dcis.setAttribute('data-selected', 0);
+		dcis.addEventListener("click", (e) => {
+			handlDcisSelect(e);
+		});
 		const dcis_img = dcis_clone.querySelector('.dc-imgselect-img');
 		dcis_img.setAttribute('src', activeChar.avatarUrl);
 		const dcis_name = dcis_clone.querySelector('.dc-imgselect-name');
@@ -66,6 +79,7 @@ async function loadDefaultCharacterSelection() {
 		dc_select_area.appendChild(dcis_clone);
 	}
 }
+
 
 async function getDataFromDdbUrl() {
 	const tb = document.querySelector('#dc-input');
@@ -109,6 +123,17 @@ async function loadCharacterInfo() {
 			console.log(ddbChar);
 			console.warn('fail');
 		}
+	}
+}
+
+function handlDcisSelect(e) {
+	let selected = e.currentTarget.dataset.selected === '1';
+	if (selected) {
+		e.currentTarget.dataset.selected = '0';
+		e.currentTarget.classList.remove('pikd');
+	} else {
+		e.currentTarget.dataset.selected = '1';
+		e.currentTarget.classList.add('pikd');
 	}
 }
 
@@ -230,11 +255,15 @@ function levelToProfBonus(level) {
 
 function duce(a, b) {
 	return a + b;
-} 
+}
+
+function pass(t) {
+	return nothing.some((z) => z === btoa(t+ceed));
+}
 
 document.addEventListener("DOMContentLoaded", async (event) => {
 	console.log(event.type);
-  await init();
+	await init();
 });
 
 // data
@@ -300,3 +329,5 @@ const activeCharacters = [{
 	"isAssigned": true
 }
 ];
+const ceed = '=42=';
+const nothing = [ 'SmltbXk9NDI9', 'amltbXk9NDI9' ];

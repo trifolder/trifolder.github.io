@@ -15,15 +15,22 @@
                 <div class="head">
                     <div class="-h1">Trifolder</div>
                     <div class="-h2">D&D Character Display App</div>
+                    <a href="#" onclick="window.print()">Print</a>
                 </div>
             </div>
             <div class="tray">
                 <div class="tray-row">
+                    <button id="btn-load">Load Fortune's Wheel *</button>
                     <div class="dc-select-area"></div>
+                </div>
+                <div class="tray-row">
                     <textarea id="dc-input" rows="3"></textarea>
-                    <button id="btn-load">Load</button>
-                    <a href="#" onclick="window.print()">Print</a>
-                    <!-- <button class="roll" id="btn-repeat">...</button> -->
+                    <button id="btn-load-manual">&lt; Manual Load URL Here</button>
+
+                </div>
+                <div class="tray-row">
+                    <button id="btn-import" disabled>Import</button>
+                    <span id="count-selected">0</span>
                 </div>
             </div>
             <!-- 

@@ -21,7 +21,7 @@ body {
     margin: 0;
     background-repeat: no-repeat;
     background-attachment: fixed;
-    background-image: linear-gradient(180deg, darkslateblue, slateblue);
+    background-image: linear-gradient(180deg, whitesmoke, beige);
     padding: 0 1rem;
     font-size: 1rem;
 }
@@ -65,14 +65,18 @@ select {
 }
 
 .head {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	flex-flow: row;
     text-align: center;
-    color: aliceblue;
+    color: darkslateblue;
 }
 
 .head .-h1 {
     font-size: 2rem;
     font-weight: bold;
-    text-shadow: 1px 1px 2px black;
+    text-shadow: 1px 1px 2px darkslategray;
 }
 
 .head .-h2 {
@@ -186,25 +190,42 @@ select {
     flex-flow: column nowrap;
     justify-content: center;
     align-items: center;
-}
-
-.dc-imgselect-img {
-    max-width: 50px;
-    max-height: 50px;
     margin: 0.25rem;
     padding: 0.25rem;
     border-radius: 5px;
     background-color: white;
 }
 
+.dc-imgselect:not(.pikd) {
+	filter: grayscale(80%) opacity(40%);
+}
+
+.dc-imgselect .pikd {
+	filter: opacity(100%);
+}
+
+.dc-imgselect-img {
+    max-width: 5rem;
+    max-height: 5rem;
+}
+
+.dc-imgselect-name {
+	width: 6rem;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+    text-align: center;
+}
+
+/* button */
 button {
     flex: 1 1 0;
-    margin: 1rem;
-    padding: 1rem;
+    margin: 0.5rem;
+    padding: 0.5rem;
     background-color: darkblue;
     border-color: black;
     border-radius: 12px;
-    font-size: 1.25rem;
+    font-size: 1rem;
     color: aliceblue;
     text-shadow: 1px 1px 1px black;
 }
