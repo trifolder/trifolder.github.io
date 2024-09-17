@@ -19,6 +19,7 @@ async function init() {
 		await handleLoadPress(e);
 	});
 	const btnLoadManual = document.querySelector("#btn-load-manual");
+	btnLoadManual.addEventListener('click', handleManualLoad);
 	const btnImport = document.querySelector("#btn-import");
 	btnImport.addEventListener("click", async (e) => {
 		//await handleImport(e);
@@ -55,6 +56,13 @@ async function handleLoadPress(e) {
 	// await loadCharacterInfo();
 }
 
+async function handleManualLoad(e) {
+	// 
+	await getDragonHeistCharacterData();
+	// 
+	await loadCharacterInfo();
+}
+
 async function loadDefaultCharacterSelection() {
 	if (!TEMPLATE_OK) {
 		alert('browser no support templates!!!');
@@ -80,6 +88,21 @@ async function loadDefaultCharacterSelection() {
 	}
 }
 
+async function getDragonHeistCharacterData() {
+	const files = [
+		'_ancey01.json',
+		'_cylin01.json',
+		'_genny01.json',
+		'_remix01.json'
+	];
+	ddbChars = [];
+	for (let i = 0; i < files.length; i++) {
+		const url = `./${files[i]}`;
+		const response = await fetch(url);
+		const charData = await response.json();
+		ddbChars[i] = charData;
+	}
+}
 
 async function getDataFromDdbUrl() {
 	const tb = document.querySelector('#dc-input');
@@ -154,7 +177,9 @@ function buildCharacterView(c) {
 	dc_name.textContent = c.name;
 
 	const dc_rccl = clone.querySelector('.dc-raceclass');
-	const className = c.classes.map(o => o.definition.name + ' ' + o.subclassDefinition.name).join(', ');
+
+	const className = c.classes.map(o => o.definition.name).join(', ');
+	//const className = c.classes.map(o => o.definition.name + ' ' + o.subclassDefinition.name).join(', ');
 	dc_rccl.innerHTML = `Race: ${c.race.fullName}<br />Class: ${className}`;
 
 	const characterInfo = calculateCharacterStats(c);
